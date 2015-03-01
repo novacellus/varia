@@ -338,7 +338,7 @@ coocA <- function(corp, piv, poscooc="QLF SUB VBE",
   cooc0 <- data.frame(id=cooc.final[,1],pos=cooc.final[,2],cooc=cooc.final[,3], lem=cooc.final[,4],eff.lem=cooc.final[,5],eff.pivot=cooc.final[,6],Dice=cooc.final[,8],PoissonS=cooc.final[,9],Daille=cooc.final[,10],HyperG=cooc.final[,12],PMI=cooc.final[,11],cum="")
   cooc1 <- data.frame(id=resultat[,1],pos=resultat[,2],cooc=resultat[,3], lem=resultat[,4],eff.lem=resultat[,5],eff.pivot=resultat[,6],Dice=resultat[,8],PoissonS=resultat[,9],Daille=resultat[,10],HyperG=resultat[,12],PMI=resultat[,11],cum="")
   DF <- paste(D,F, sep="//")
-  result <- list(call=match.call(),coo0=cooc0,cooc1=cooc1,A2d3=A2,lgcorp=lgcorp,lemme=piv,cposLm=cpos.pivot,corpus=corp,effectif=eff.pivot,debfin=DF,pospiv=pos.piv,poscooc=poscooc,dist=dis,attr=attr,val=val,nb=nbs,NN=CORP.ln,tlex=ids.tablex)
+  result <- list(call=match.call(),cooc0=cooc0,cooc1=cooc1,A2d3=A2,lgcorp=lgcorp,lemme=piv,cposLm=cpos.pivot,corpus=corp,effectif=eff.pivot,debfin=DF,pospiv=pos.piv,poscooc=poscooc,dist=dis,attr=attr,val=val,nb=nbs,NN=CORP.ln,tlex=ids.tablex)
 
   t2 <- Sys.time()
   td <- difftime(t1,t2, units="secs")
