@@ -1,0 +1,20 @@
+Package: coocr
+Title: Various statistics for lexical coocurrences
+Version: 0.0.0.9000
+Authors@R: person("Alain", "Guerreau", , "alain.guerreau@wanadoo.fr", role = c("aut", "cre"))
+Description: Statistics of lexical coocurrences
+  script "boîte à outils" d'analyse des cooccurrents
+  écrit pour traiter des corpus de textes anciens,
+  spécialement de textes latins
+  lemmatisés avec les paramètres OMNIA,
+  mais commodément adaptable.
+  alain guerreau - août 2012-octobre 2014 domaine public ou GPL3...
+  version pré-alpha !!  0.3
+  guerreau@msh-paris.fr
+Depends: R (>= 3.1.1)
+License: What license is it under?
+LazyData: true
+Imports:
+  MASS(>= 7.3),
+  plyr(>= 1.8.1),
+  rcqp
