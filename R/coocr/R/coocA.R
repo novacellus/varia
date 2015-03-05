@@ -1,4 +1,4 @@
-#' Wrapper function for computing coocurrences
+#' Wrapper function for computing coocurrences (mainly for interactive use)
 #' The function parses user input, checks for existing corpora, formulates query phrase
 #' @param corp Corpus name
 #' @param piv Searched word
@@ -23,51 +23,26 @@ coocA <- function(corp, piv, poscooc="QLF SUB VBE",
                   corp_lemma="lemma", corp_pos="pos"
                   ) {
   t1 <- Sys.time()
-# vérifications de base----------
+# vérifications de base
   # du corpus
-  #verify_corpus_name_check(corp)
-  list_corp <- rcqp::cqi_list_corpora()
-  if (corp %in% list_corp == FALSE)
-    stop (paste(corp, ": aucun corpus de ce nom !"),
-          "\n",
-          "Vous pouvez choisir entre:", "\n",
-          lapply(list_corp, function(x) paste(x,"\n")),
-          call.=FALSE)
-
-  # du pivot
-  p_attr_list <- rcqp::cqi_attributes(corp,"p")
-  if(!corp_lemma %in% p_attr_list) stop("Definiez l'attribute corp_lemma comme un des suivants:\n",
-                                                        lapply(p_attr_list,function(x) paste(x,"\n") )) #Checks if "lemma" is a posit attr
+  if(! .check_corpus_name(corp))
+     stop(.error_message("no_such_corpus",corpus=corp))
+  # des attributes
+  p_attr_list <- .list_attrs(corp)$p
+  if(!corp_lemma %in% p_attr_list)
+    stop(.error_message("no_p_attr",corp_lemma=corp_lemma,p_attr_list=p_attr_list))
   corp.lm <- paste(corp, ".", corp_lemma , sep="")
-  if(!corp_pos %in% p_attr_list) stop("Definiez l'attribute corp_pos comme un des suivants:\n",
-                                        lapply(p_attr_list,function(x) paste(x,"\n") )) #Checks if "pos" is a posit attr
+
+  if(!corp_pos %in% p_attr_list)
+    stop(.error_message("no_p_attr",corp_pos=corp_pos,p_attr_list=p_attr_list))
   corp.ps <- paste(corp, ".", corp_pos , sep="")
 
-  id.piv <- rcqp::cqi_str2id(corp.lm, piv)
-
-  if (id.piv < 0) {  # si lemme inconnu, recherche simple par joker affixé
-    id.prov <- rcqp::cqi_regex2id(corp.lm, piv) # id provisoire
-    if (length(id.prov)==0){
-      piv2 <- paste(piv, ".*", sep="")    # on ajoute un joker
-      id.prov <- rcqp::cqi_regex2id(corp.lm, piv2) # vecteur des id correspondant à piv+joker
-    }
-    if (length(id.prov)==0) stop(paste(piv, ": lemme inconnu ! utilisez la fonction flou() !"),call.=FALSE)
-    str.prov <- rcqp::cqi_id2str(corp.lm, id.prov)
-    cpos.prov <- NULL
-    pos.prov <- NULL
-    freq.prov <- NULL
-    for (i in 1:length(id.prov)){
-      cpos.prov[i] <- rcqp::cqi_id2cpos(corp.lm, id.prov[i])
-      pos.prov[i] <- rcqp::cqi_cpos2str(corp.ps, cpos.prov[i])
-      freq.prov[i] <- rcqp::cqi_id2freq(corp.lm, id.prov[i])
-      cat(str.prov[i], "/", pos.prov[i], "/", freq.prov[i], "\n")
-    }
-    if (length(id.prov) > 0) stop ("Choisissez parmi ces lemmes !", call.=FALSE)
-  }
+  #du pivot --> id
+  piv.id <- find_word(corp=corp,corp_lemma=corp_lemma,piv=piv)
 
   # du coefficient
   lst.coeff <- c("dice","poiss","daille","pmi","hyperg","mins")
-  if (coeff %in% lst.coeff == FALSE) stop ("coefficient inconnu, choisir : daille/dice/hyperg/mins/pmi/poiss", call.=FALSE)
+  if (! coeff %in% lst.coeff) stop ("coefficient inconnu, choisir : daille/dice/hyperg/mins/pmi/poiss", call.=FALSE)
 
   # de la borne supérieure
   CORP <- rcqp::corpus(corp) # corpus complet
@@ -78,35 +53,29 @@ coocA <- function(corp, piv, poscooc="QLF SUB VBE",
   lgcorp <- F-D
 
   # de la paire attribut/valeur (validité de la paire : AGENDUM !!!)
-  if ((attr!="" & val=="") | (attr=="" & val!="")) stop ("Requête incomplète !", call.=FALSE)
-  cat ("\n Vérifications simples : OK ! \n")
 
   #
   # établissement de la liste des cpos du pivot
   #
-
   LL <- "Lsub" # nom générique de sous-corpus
   A2 <- ""
+  dump.pivot <- find_words(piv.id=piv.id,corp.lm=corp.lm,piv=piv,corp=corp)
+  #if ((attr!="" & val=="") | (attr=="" & val!="")) {
+  #  stop ("Requête incomplète !", call.=FALSE)
+  #  cat ("\n Vérifications simples : OK ! \n")
+  #} else if (attr!="" & val!="") {
+  # cat("La recherche du pivot dans une fraction du corpus total prend du temps (beaucoup)... \n")
+  # LL2 <- "Lsub2"
+  # quer2 <- paste("[lemma='", piv, "' %cd]", "::match.", attr, "=\"", val, "\"", sep="")
+  # rcqp::cqi_query(corp, LL2, quer2)
+  # sscorp2 <- paste(corp, LL2, sep = ":")
+  # if (rcqp::cqi_subcorpus_size(sscorp2)==0) stop ("Pas de réponse, vérifiez la requête !", call.=F)
+  # dump.pivot <- rcqp::cqi_dump_subcorpus(sscorp2)[,1]
+  # rcqp::cqi_drop_subcorpus(sscorp2)
+  #} else if (attr=="" & val=="") {
 
-  if (attr=="" & val=="") {
-    quer1 <- paste ("[lemma='", piv, "']", sep ="")
-    rcqp::cqi_query(corp, LL, quer1)
-    sscorp <- paste(corp, LL, sep = ":")
-    if (rcqp::cqi_subcorpus_size(sscorp)==0) stop ("Pas de réponse, vérifiez la requête !", call.=FALSE)
-    dump.pivot <- rcqp::cqi_dump_subcorpus(sscorp)[,1]
-    rcqp::cqi_drop_subcorpus(sscorp)
-    # CORPu.ln <- F-D
-  }
-  if (attr!="" & val!="") {
-    # cat("La recherche du pivot dans une fraction du corpus total prend du temps (beaucoup)... \n")
-    LL2 <- "Lsub2"
-    quer2 <- paste("[lemma='", piv, "' %cd]", "::match.", attr, "=\"", val, "\"", sep="")
-    rcqp::cqi_query(corp, LL2, quer2)
-    sscorp2 <- paste(corp, LL2, sep = ":")
-    if (rcqp::cqi_subcorpus_size(sscorp2)==0) stop ("Pas de réponse, vérifiez la requête !", call.=F)
-    dump.pivot <- rcqp::cqi_dump_subcorpus(sscorp2)[,1]
-    rcqp::cqi_drop_subcorpus(sscorp2)
-  }
+   # dump.pivot <-rcqp::cqi_id2cpos(corp.lm,piv.id)
+  #}
   gc()
   cpos.pivot <- dump.pivot[dump.pivot>D & dump.pivot <F] # tranche simple
   eff.pivot <- length(cpos.pivot)
@@ -150,10 +119,6 @@ coocA <- function(corp, piv, poscooc="QLF SUB VBE",
   # construction de la table des cooccurrents (ids)
   # 2 sorties : * tableau lexical (une ligne par occ du pivot) * vecteur cumulatif
   #
-
-  #ids.GD <- as.vector(NULL)
-  #ps.GD <-as.vector(NULL)
-  #ids.tablex <- matrix(cpos.pivot, nrow=eff.pivot, ncol=(dis*2))
   dis.matrix <- c(-dis:-1,1:dis)
   ids.tablex <- vapply(dis.matrix, '+', cpos.pivot, FUN.VALUE = numeric(length(cpos.pivot)) )
   ids.GD <- rcqp::cqi_cpos2id(corp.lm,cpos = as.vector(ids.tablex) )

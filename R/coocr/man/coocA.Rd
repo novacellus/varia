@@ -2,7 +2,8 @@
 % Please edit documentation in R/coocA.R
 \name{coocA}
 \alias{coocA}
-\title{Wrapper function for computing coocurrences}
+\title{Wrapper function for computing coocurrences
+The function parses user input, checks for existing corpora, formulates query phrase}
 \usage{
 coocA(corp, piv, poscooc = "QLF SUB VBE", dis = 5, coeff = "dice",
   selec = 1, nbs = 30, D = 0, F = Inf, attr = "", val = "",
@@ -39,6 +40,7 @@ coocA(corp, piv, poscooc = "QLF SUB VBE", dis = 5, coeff = "dice",
 'cooca' object
 }
 \description{
+Wrapper function for computing coocurrences
 The function parses user input, checks for existing corpora, formulates query phrase
 }
 \examples{
